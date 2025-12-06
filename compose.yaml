@@ -1,24 +1,29 @@
 services:
+  php:
+    build: ./php/
+    ports:
+      - "8000:80"
+    volumes:
+      - ./php:/srv
+
   chroma:
     image: chromadb/chroma
-    restart: always
     ports:
-      - 8000:8000
+      - 8010:8000
     volumes:
       - chroma_data:/chroma/chroma
 
   qdrant:
     image: qdrant/qdrant
-    restart: always
     ports:
-      - 8001:6333
+      - 8020:6333
     volumes:
       - qdrant_data:/qdrant/storage
 
   faiss:
     build: ./faiss/
     ports:
-      - "8002:5000"
+      - "8030:5000"
     volumes:
       - faiss_data:/data/faiss
     environment:
@@ -26,7 +31,22 @@ services:
       - INDEX_TYPE=Flat
       - INDEX_PATH=/data/faiss/index.idx
 
+  embedder:
+    build: ./embedder/
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./embedder:/app
+
+  ollama:
+    build: ./ollama/
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+
 volumes:
   chroma_data:
   qdrant_data:
   faiss_data:
+  ollama_data:

@@ -4,34 +4,34 @@
 
 ### Port
 
-- 8000
+- 8010
 
 ### Health Check
 
 ```bash
-curl http://localhost:8000/api/v2/heartbeat
+curl http://localhost:8010/api/v2/heartbeat
 ```
 
 ## Qdrant
 
 ### Port
 
-- 8001
+- 8020
 
 ### Health Check
 
 ```bash
-curl http://localhost:8001/healthz
+curl http://localhost:8020/healthz
 ```
 
 ## Faiss
 
 ### Port
 
-- 8002
+- 8030
 
 ### Health Check
 
-```
-curl http://localhost:8002/status
+```bash
+curl http://localhost:8030/status
 ```

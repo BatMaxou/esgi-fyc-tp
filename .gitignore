@@ -1,0 +1,16 @@
+###> symfony ###
+/php/.env.local
+/php/var/
+/php/vendor/
+###< symfony ###
+
+###> docker ###
+/compose.override.yaml
+/compose.override.prod.yaml
+###< docker ###
+
+###> Extra ###
+/.DS_Store/
+/.vscode/
+###< Extra ###
+

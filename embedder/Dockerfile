@@ -5,6 +5,10 @@ WORKDIR /app
 COPY . .
 
 RUN pip install --upgrade pip
+
+# Only user CPU versions to gain smaller image size
+RUN pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+
 RUN pip install --no-cache-dir -r requirements.txt
 
 EXPOSE 5000
