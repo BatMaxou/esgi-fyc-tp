@@ -1,0 +1,32 @@
+services:
+  chroma:
+    image: chromadb/chroma
+    restart: always
+    ports:
+      - 8000:8000
+    volumes:
+      - chroma_data:/chroma/chroma
+
+  qdrant:
+    image: qdrant/qdrant
+    restart: always
+    ports:
+      - 8001:6333
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+  faiss:
+    build: ./faiss/
+    ports:
+      - "8002:5000"
+    volumes:
+      - faiss_data:/data/faiss
+    environment:
+      - VECTOR_DIMENSION=384
+      - INDEX_TYPE=Flat
+      - INDEX_PATH=/data/faiss/index.idx
+
+volumes:
+  chroma_data:
+  qdrant_data:
+  faiss_data:
