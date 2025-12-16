@@ -23,5 +23,15 @@ class EmbedderClient
 
         return $response->toArray();
     }
+
+    public function getEmbededDocument(): array
+    {
+        $response = $this->client->request('POST', \sprintf('%s/document', $this->baseUrl), [
+            'json' => ['path' => 'document.pdf'],
+            'timeout' => 900,
+        ]);
+
+        return $response->toArray();
+    }
 }
 

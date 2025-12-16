@@ -33,10 +33,14 @@ services:
 
   embedder:
     build: ./embedder/
+    environment:
+      - TIKA_URL=http://tika:9998
     ports:
       - "5000:5000"
     volumes:
       - ./embedder:/app
+    depends_on:
+      - tika
 
   ollama:
     build: ./ollama/
@@ -44,6 +48,11 @@ services:
       - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
+
+  tika:
+    image: apache/tika
+    ports:
+      - "9998:9998"
 
 volumes:
   chroma_data:

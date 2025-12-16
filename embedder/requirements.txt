@@ -1,2 +1,4 @@
 flask
 sentence-transformers
+tika
+langchain_text_splitters
