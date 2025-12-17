@@ -1,8 +1,6 @@
 services:
   php:
     build: ./php/
-    ports:
-      - "8000:80"
     volumes:
       - ./php:/srv
 
@@ -12,6 +10,9 @@ services:
       - 8010:8000
     volumes:
       - chroma_data:/chroma/chroma
+    environment:
+      - CHROMA_LOG_LEVEL=DEBUG
+      - ANONYMIZED_TELEMETRY=FALSE
 
   qdrant:
     image: qdrant/qdrant
@@ -22,21 +23,13 @@ services:
 
   faiss:
     build: ./faiss/
-    ports:
-      - "8030:5000"
     volumes:
       - faiss_data:/data/faiss
-    environment:
-      - VECTOR_DIMENSION=384
-      - INDEX_TYPE=Flat
-      - INDEX_PATH=/data/faiss/index.idx
 
   embedder:
     build: ./embedder/
     environment:
       - TIKA_URL=http://tika:9998
-    ports:
-      - "5000:5000"
     volumes:
       - ./embedder:/app
     depends_on:
@@ -44,8 +37,6 @@ services:
 
   ollama:
     build: ./ollama/
-    ports:
-      - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
 

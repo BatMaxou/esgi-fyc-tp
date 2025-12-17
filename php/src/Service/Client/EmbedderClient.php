@@ -26,10 +26,7 @@ class EmbedderClient
 
     public function getEmbededDocument(): array
     {
-        $response = $this->client->request('POST', \sprintf('%s/document', $this->baseUrl), [
-            'json' => ['path' => 'document.pdf'],
-            'timeout' => 900,
-        ]);
+        $response = $this->client->request('POST', \sprintf('%s/document', $this->baseUrl));
 
         return $response->toArray();
     }

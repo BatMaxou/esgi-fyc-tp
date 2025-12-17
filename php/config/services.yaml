@@ -21,9 +21,17 @@ services:
         arguments:
             $baseUrl: '%env(string:EMBEDDER_URL)%'
 
+    App\Service\Client\ChromaClient:
+        arguments:
+            $baseUrl: '%env(string:CHROMA_URL)%'
+
     App\Service\Client\QdrantClient:
         arguments:
             $baseUrl: '%env(string:QDRANT_URL)%'
+
+    App\Service\Client\FaissClient:
+        arguments:
+            $baseUrl: '%env(string:FAISS_URL)%'
 
     App\Service\Client\OllamaClient:
         arguments:

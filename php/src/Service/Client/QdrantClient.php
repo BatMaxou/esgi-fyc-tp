@@ -8,10 +8,6 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
 
 class QdrantClient
 {
-    public const COLLECTION_MAPPING = [
-        EmbeddingEnum::PDF->value => 'pdf',
-    ];
-
     private HttpClientInterface $client;
     private string $baseUrl;
 
@@ -21,11 +17,11 @@ class QdrantClient
         $this->baseUrl = $baseUrl;
     }
 
-    public function initCollection(EmbeddingEnum $type): void
+    public function initCollection(EmbeddingEnum $type): static
     {
         $response = $this->client->request(
             'PUT',
-            \sprintf('%s/collections/%s', $this->baseUrl, self::COLLECTION_MAPPING[$type->value]),
+            \sprintf('%s/collections/%s', $this->baseUrl, $type->value),
             [
                 'json' => [
                     'vectors' => [
@@ -39,15 +35,19 @@ class QdrantClient
         if (200 !== $response->getStatusCode()) {
             throw new \RuntimeException('Failed to create collection');
         }
+
+        return $this;
     }
 
-    public function removeCollection(EmbeddingEnum $type): void
+    public function removeCollection(EmbeddingEnum $type): static
     {
-        $response = $this->client->request('DELETE', \sprintf('%s/collections/%s', $this->baseUrl, self::COLLECTION_MAPPING[$type->value]));
+        $response = $this->client->request('DELETE', \sprintf('%s/collections/%s', $this->baseUrl, $type->value));
 
         if (200 !== $response->getStatusCode()) {
             throw new \RuntimeException('Failed to delete collection');
         }
+
+        return $this;
     }
 
     public function upsert(string $id, EmbeddingEnum $type, array $embedding, array $payload): ResponseInterface
@@ -58,7 +58,7 @@ class QdrantClient
 
         $response = $this->client->request(
             'PUT',
-            \sprintf('%s/collections/%s/points', $this->baseUrl, self::COLLECTION_MAPPING[$type->value]),
+            \sprintf('%s/collections/%s/points', $this->baseUrl, $type->value),
             [
                 'json' => [
                     'points' => [[
@@ -77,59 +77,15 @@ class QdrantClient
         return $response;
     }
 
-    public function delete(string $id, EmbeddingEnum $type): ResponseInterface
+    public function search(EmbeddingEnum $type, array $embedding, int $limit): array
     {
         $response = $this->client->request(
             'POST',
-            \sprintf('%s/collections/%s/points/delete', $this->baseUrl, self::COLLECTION_MAPPING[$type->value]),
-            [
-                'json' => [
-                    'points' => [$id],
-                ],
-            ]
-        );
-
-        if (200 !== $response->getStatusCode()) {
-            throw new \RuntimeException('Failed to delete point');
-        }
-
-        return $response;
-    }
-
-    public function recommend(array $embeddings, int $top = 20): array
-    {
-        $response = $this->client->request(
-            'POST',
-            \sprintf('%s/collections/%s/points/query', $this->baseUrl, self::COLLECTION_MAPPING[EmbeddingEnum::RECOMMENDATION->value]),
-            [
-                'json' => [
-                    'query' => [
-                        'recommend' => [
-                            'positive' => $embeddings,
-                        ],
-                    ],
-                    'limit' => $top,
-                    'with_payload' => true,
-                ],
-            ]
-        );
-
-        if (200 !== $response->getStatusCode()) {
-            throw new \RuntimeException('Failed to search: '.$response->getContent(false));
-        }
-
-        return $response->toArray()['result']['points'] ?? [];
-    }
-
-    public function search(array $embedding, int $top = 20): array
-    {
-        $response = $this->client->request(
-            'POST',
-            \sprintf('%s/collections/%s/points/query', $this->baseUrl, self::COLLECTION_MAPPING[EmbeddingEnum::SEARCH->value]),
+            \sprintf('%s/collections/%s/points/query', $this->baseUrl, $type->value),
             [
                 'json' => [
                     'query' => $embedding,
-                    'limit' => $top,
+                    'limit' => $limit,
                     'with_payload' => true,
                 ],
             ]
@@ -140,36 +96,6 @@ class QdrantClient
         }
 
         return $response->toArray()['result']['points'] ?? [];
-    }
-
-    public function getCollectionInfo(EmbeddingEnum $type): array
-    {
-        $response = $this->client->request('GET', \sprintf('%s/collections/%s', $this->baseUrl, self::COLLECTION_MAPPING[$type->value]));
-
-        if (200 !== $response->getStatusCode()) {
-            throw new \RuntimeException('Failed to get collection info: '.$response->getContent(false));
-        }
-
-        return $response->toArray();
-    }
-
-    public function getPointCount(EmbeddingEnum $type): int
-    {
-        $response = $this->client->request(
-            'POST',
-            \sprintf('%s/collections/%s/points/count', $this->baseUrl, self::COLLECTION_MAPPING[$type->value]),
-            [
-                'json' => (object) [],
-            ],
-        );
-
-        if (200 !== $response->getStatusCode()) {
-            throw new \RuntimeException('Failed to count points: '.$response->getContent(false));
-        }
-
-        $data = $response->toArray();
-
-        return $data['result']['count'] ?? 0;
     }
 }
 
