@@ -3,6 +3,7 @@
 namespace App\Service\Client;
 
 use App\Enum\EmbeddingEnum;
+use Symfony\Component\Uid\Uuid;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 
@@ -50,7 +51,7 @@ class QdrantClient
         return $this;
     }
 
-    public function upsert(string $id, EmbeddingEnum $type, array $embedding, array $payload): ResponseInterface
+    public function upsert(EmbeddingEnum $type, array $embedding, string $document): ResponseInterface
     {
         if (384 !== count($embedding)) {
             throw new \InvalidArgumentException(\sprintf('Embedding must have 384 dimensions, got %d', count($embedding)));
@@ -62,9 +63,11 @@ class QdrantClient
             [
                 'json' => [
                     'points' => [[
-                        'id' => $id,
+                        'id' => Uuid::v7()->toString(),
                         'vector' => array_values($embedding),
-                        'payload' => $payload,
+                        'payload' => [
+                            'document' => $document,
+                        ],
                     ]],
                 ],
             ]

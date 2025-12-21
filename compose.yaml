@@ -24,12 +24,14 @@ services:
   faiss:
     build: ./faiss/
     volumes:
+      - ./faiss:/app
       - faiss_data:/data/faiss
 
   embedder:
     build: ./embedder/
     environment:
       - TIKA_URL=http://tika:9998
+      - PHP_URL=http://php:80
     volumes:
       - ./embedder:/app
     depends_on:

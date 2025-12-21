@@ -29,7 +29,11 @@ class InitCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
 
-        dd($this->faissClient->initIndex());
+        $this->faissClient
+            ->reset()
+            ->initIndex();
+
+        $io->success('Faiss index initialized.');
 
         $this->chromaClient
             ->reset()
@@ -37,9 +41,13 @@ class InitCommand extends Command
             ->initDatabase()
             ->initCollection(EmbeddingEnum::PDF);
 
+        $io->success('Chroma collection initialized.');
+
         $this->qdrantClient
             ->removeCollection(EmbeddingEnum::PDF)
             ->initCollection(EmbeddingEnum::PDF);
+
+        $io->success('Qdrant collection initialized.');
 
         return Command::SUCCESS;
     }

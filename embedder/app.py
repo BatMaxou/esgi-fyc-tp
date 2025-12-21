@@ -26,7 +26,7 @@ def embed_document():
         return jsonify({"error": "Missing document"}), 400
 
     document_text = parser.from_file(
-        '/app/sujet.pdf',
+        os.environ['PHP_URL'] + path,
         serverEndpoint=os.environ['TIKA_URL']
     )
     if not document_text or 'content' not in document_text:
@@ -35,10 +35,11 @@ def embed_document():
     text_splitter = CharacterTextSplitter(chunk_size=500, chunk_overlap=100)
     chunks = text_splitter.create_documents([document_text['content']])
 
-    vectors = []
+    vectors = {}
     for chunk in chunks:
-        vector = model.encode(chunk.page_content).tolist()
-        vectors.append(vector)
+        content = chunk.page_content
+        vector = model.encode(content).tolist()
+        vectors[content] = vector
 
     return jsonify(vectors)
 

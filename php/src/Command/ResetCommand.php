@@ -4,21 +4,23 @@ namespace App\Command;
 
 use App\Enum\EmbeddingEnum;
 use App\Service\Client\ChromaClient;
+use App\Service\Client\FaissClient;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use App\Service\Client\EmbedderClient;
+use App\Service\Client\QdrantClient;
 
 #[AsCommand(
-    name: 'app:tp',
+    name: 'app:reset',
 )]
-class TpCommand extends Command
+class ResetCommand extends Command
 {
     public function __construct(
-        private readonly EmbedderClient $embedderClient,
         private readonly ChromaClient $chromaClient,
+        private readonly QdrantClient $qdrantClient,
+        private readonly FaissClient $faissClient,
     ) {
         parent::__construct();
     }
@@ -27,13 +29,17 @@ class TpCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
 
-        $documentVectors = $this->embedderClient->getEmbededDocument();
+        $this->faissClient->reset();
 
-        dd($documentVectors);
+        $io->success('Faiss index reset.');
 
-        foreach ($documentVectors as $index => $vector) {
-            $this->chromaClient->insert($index, EmbeddingEnum::PDF, $vector);
-        }
+        $this->chromaClient->reset();
+
+        $io->success('Chroma database reset.');
+
+        $this->qdrantClient->removeCollection(EmbeddingEnum::PDF);
+
+        $io->success('Qdrant collection reset.');
 
         return Command::SUCCESS;
     }

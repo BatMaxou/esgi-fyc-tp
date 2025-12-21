@@ -3,12 +3,14 @@
 namespace App\Service\Client;
 
 use App\Enum\EmbeddingEnum;
+use Symfony\Component\Uid\Uuid;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class ChromaClient
 {
     public const TENANT = 'fyc';
     public const DATABASE = 'fyc_db';
+    public const COLLECTION_ID_FILE_PATH = __DIR__.'/../../../var/chroma_collection_id.txt';
 
     private HttpClientInterface $client;
     private string $baseUrl;
@@ -69,15 +71,20 @@ class ChromaClient
             ]
         );
 
-        if (200 !== $response->getStatusCode()) {
+        $id = $response->toArray()['id'] ?? null;
+        if (200 !== $response->getStatusCode() || null === $id) {
             throw new \RuntimeException('Failed to create collection');
         }
+
+        $this->storeCollectionId($id);
 
         return $this;
     }
 
     public function reset(): static
     {
+        $this->deleteCollectionId();
+
         $response = $this->client->request(
             'DELETE',
             \sprintf('%s/tenants/%s/databases/%s', $this->baseUrl, self::TENANT, self::DATABASE)
@@ -90,28 +97,63 @@ class ChromaClient
         return $this;
     }
 
-    public function insert(string $id, EmbeddingEnum $type, array $embedding): static
+    public function insert(array $embedding, string $document): static
     {
         $response = $this->client->request(
             'POST',
-            \sprintf('%s/tenants/%s/databases/%s/collections/%s/add', $this->baseUrl, self::TENANT, self::DATABASE, $type->value),
+            \sprintf('%s/tenants/%s/databases/%s/collections/%s/add', $this->baseUrl, self::TENANT, self::DATABASE, $this->getCollectionId()),
             [
                 'json' => [
-                    'documents' => ['test'],
-                    'ids' => [$id],
+                    'documents' => [$document],
+                    'ids' => [Uuid::v7()->toString()],
                     'embeddings' => [$embedding],
                 ],
 
             ]
         );
 
-        dd($response->toArray());
-
-        if (200 !== $response->getStatusCode()) {
-            throw new \RuntimeException('Failed to create collection');
+        if (201 !== $response->getStatusCode()) {
+            throw new \RuntimeException('Failed to insert document');
         }
 
         return $this;
+    }
+
+    public function search(array $embedding, int $limit): array
+    {
+        $response = $this->client->request(
+            'POST',
+            \sprintf('%s/tenants/%s/databases/%s/collections/%s/query', $this->baseUrl, self::TENANT, self::DATABASE, $this->getCollectionId()),
+            [
+                'json' => [
+                    'query_embeddings' => [$embedding],
+                    'n_results' => $limit,
+                ],
+            ]
+        );
+
+        if (200 !== $response->getStatusCode()) {
+            throw new \RuntimeException('Failed to search document');
+        }
+
+        return $response->toArray()['documents'] ?? [];
+    }
+
+    private function storeCollectionId(string $id): void
+    {
+        file_put_contents(self::COLLECTION_ID_FILE_PATH, $id);
+    }
+
+    private function getCollectionId(): string
+    {
+        return file_get_contents(self::COLLECTION_ID_FILE_PATH);
+    }
+
+    private function deleteCollectionId(): void
+    {
+        if (file_exists(self::COLLECTION_ID_FILE_PATH)) {
+            unlink(self::COLLECTION_ID_FILE_PATH);
+        }
     }
 }
 

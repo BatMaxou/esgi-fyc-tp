@@ -24,9 +24,13 @@ class EmbedderClient
         return $response->toArray();
     }
 
-    public function getEmbededDocument(): array
+    public function getEmbededDocument(string $path): array
     {
-        $response = $this->client->request('POST', \sprintf('%s/document', $this->baseUrl));
+        $response = $this->client->request('POST', \sprintf('%s/document', $this->baseUrl), [
+            'json' => [
+                'path' => $path,
+            ],
+        ]);
 
         return $response->toArray();
     }
