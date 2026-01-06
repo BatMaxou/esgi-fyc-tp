@@ -46,7 +46,7 @@ class FaissClient
         return $this;
     }
 
-    public function insert(array $embedding, string $document): static
+    public function insert(array $embedding, string $document): float
     {
         $response = $this->client->request(
             'POST',
@@ -65,10 +65,16 @@ class FaissClient
             throw new \RuntimeException('Failed to insert document');
         }
 
-        return $this;
+        return $response->getInfo('total_time') ?? 0;
     }
 
-    public function search(array $embedding): static
+    /**
+     * @return array{
+     *  time: float,
+     *  results: string[],
+     * }
+     */
+    public function search(array $embedding, int $limit): array
     {
         $response = $this->client->request(
             'POST',
@@ -76,6 +82,7 @@ class FaissClient
             [
                 'json' => [
                     'query_vectors' => [$embedding],
+                    'limit' => $limit,
                 ],
 
             ]
@@ -85,7 +92,16 @@ class FaissClient
             throw new \RuntimeException('Failed to search document');
         }
 
-        return $this;
+        $faissResults = $response->toArray()['results'][0] ?? [];
+        $results = [];
+        foreach ($faissResults as $faissResult) {
+            $results[] = $faissResult['document'];
+        }
+
+        return [
+            'time' => $response->getInfo('total_time') ?? 0,
+            'results' => $results,
+        ];
     }
 }
 

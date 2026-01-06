@@ -7,6 +7,13 @@ use Symfony\Component\Uid\Uuid;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 
+/**
+ * @template Result of array{
+ *  payload: array{
+ *      document: string,
+ *  },
+ * }
+ */
 class QdrantClient
 {
     private HttpClientInterface $client;
@@ -51,7 +58,7 @@ class QdrantClient
         return $this;
     }
 
-    public function upsert(EmbeddingEnum $type, array $embedding, string $document): ResponseInterface
+    public function upsert(EmbeddingEnum $type, array $embedding, string $document): float
     {
         if (384 !== count($embedding)) {
             throw new \InvalidArgumentException(\sprintf('Embedding must have 384 dimensions, got %d', count($embedding)));
@@ -77,9 +84,15 @@ class QdrantClient
             throw new \RuntimeException('Failed to upsert point');
         }
 
-        return $response;
+        return $response->getInfo('total_time') ?? 0;
     }
 
+    /**
+     * @return array{
+     *  time: float,
+     *  results: string[],
+     * }
+     */
     public function search(EmbeddingEnum $type, array $embedding, int $limit): array
     {
         $response = $this->client->request(
@@ -98,7 +111,16 @@ class QdrantClient
             throw new \RuntimeException('Failed to search: '.$response->getContent(false));
         }
 
-        return $response->toArray()['result']['points'] ?? [];
+        $points = $response->toArray()['result']['points'] ?? [];
+        $results = [];
+        foreach ($points as $point) {
+            $results[] = $point['payload']['document'];
+        }
+
+        return [
+            'time' => $response->getInfo('total_time') ?? 0,
+            'results' => $results,
+        ];
     }
 }
 

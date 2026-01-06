@@ -97,7 +97,7 @@ class ChromaClient
         return $this;
     }
 
-    public function insert(array $embedding, string $document): static
+    public function insert(array $embedding, string $document): float
     {
         $response = $this->client->request(
             'POST',
@@ -116,9 +116,15 @@ class ChromaClient
             throw new \RuntimeException('Failed to insert document');
         }
 
-        return $this;
+        return $response->getInfo('total_time') ?? 0;
     }
 
+    /**
+     * @return array{
+     *  time: float,
+     *  results: string[],
+     * }
+     */
     public function search(array $embedding, int $limit): array
     {
         $response = $this->client->request(
@@ -136,7 +142,10 @@ class ChromaClient
             throw new \RuntimeException('Failed to search document');
         }
 
-        return $response->toArray()['documents'] ?? [];
+        return [
+            'time' => $response->getInfo('total_time') ?? 0,
+            'results' => $response->toArray()['documents'][0] ?? [],
+        ];
     }
 
     private function storeCollectionId(string $id): void

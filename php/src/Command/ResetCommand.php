@@ -37,7 +37,7 @@ class ResetCommand extends Command
 
         $io->success('Chroma database reset.');
 
-        $this->qdrantClient->removeCollection(EmbeddingEnum::PDF);
+        $this->qdrantClient->removeCollection(EmbeddingEnum::FYC);
 
         $io->success('Qdrant collection reset.');
 

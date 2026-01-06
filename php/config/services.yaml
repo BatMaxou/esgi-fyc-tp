@@ -37,3 +37,10 @@ services:
         arguments:
             $baseUrl: '%env(string:OLLAMA_URL)%'
 
+    App\Service\Prompt\PromptBuilder:
+        arguments:
+            $basePath: '%kernel.project_dir%/prompt'
+
+    App\Command\RegisterCommand:
+        arguments:
+            $basePath: '%kernel.project_dir%/public'

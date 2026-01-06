@@ -39,13 +39,13 @@ class InitCommand extends Command
             ->reset()
             ->initTenant()
             ->initDatabase()
-            ->initCollection(EmbeddingEnum::PDF);
+            ->initCollection(EmbeddingEnum::FYC);
 
         $io->success('Chroma collection initialized.');
 
         $this->qdrantClient
-            ->removeCollection(EmbeddingEnum::PDF)
-            ->initCollection(EmbeddingEnum::PDF);
+            ->removeCollection(EmbeddingEnum::FYC)
+            ->initCollection(EmbeddingEnum::FYC);
 
         $io->success('Qdrant collection initialized.');
 
