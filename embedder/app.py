@@ -1,36 +1,40 @@
 import os
-from flask import Flask, request, jsonify
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
 from sentence_transformers import SentenceTransformer
 from tika import parser
 from langchain_text_splitters import CharacterTextSplitter
 
-app = Flask(__name__)
+app = FastAPI(title="Embedder API")
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
-@app.route("/", methods=["POST"])
-def embed():
-    data = request.json
-    text = data.get("text")
-    if not text:
-        return jsonify({"error": "Missing text"}), 400
+class TextRequest(BaseModel):
+    text: str
 
-    vector = model.encode(text).tolist()
+class DocumentRequest(BaseModel):
+    path: str
 
-    return jsonify(vector)
+@app.post("/")
+async def embed(request: TextRequest):
+    if not request.text:
+        raise HTTPException(status_code=400, detail="Missing text")
 
-@app.route("/document", methods=["POST"])
-def embed_document():
-    data = request.json
-    path = data.get("path")
-    if not path:
-        return jsonify({"error": "Missing document"}), 400
+    vector = model.encode(request.text).tolist()
+
+    return vector
+
+@app.post("/document")
+async def embed_document(request: DocumentRequest):
+    if not request.path:
+        raise HTTPException(status_code=400, detail="Missing document")
 
     document_text = parser.from_file(
-        os.environ['PHP_URL'] + path,
+        os.environ['PHP_URL'] + request.path,
         serverEndpoint=os.environ['TIKA_URL']
     )
+    
     if not document_text or 'content' not in document_text:
-        return jsonify({"error": "Could not parse document"}), 400
+        raise HTTPException(status_code=400, detail="Could not parse document")
 
     text_splitter = CharacterTextSplitter(chunk_size=500, chunk_overlap=100)
     chunks = text_splitter.create_documents([document_text['content']])
@@ -41,8 +45,4 @@ def embed_document():
         vector = model.encode(content).tolist()
         vectors[content] = vector
 
-    return jsonify(vectors)
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
-
+    return vectors

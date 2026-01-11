@@ -23,12 +23,16 @@ services:
 
   faiss:
     build: ./faiss/
+    ports:
+      - 8030:5000
     volumes:
       - ./faiss:/app
       - faiss_data:/data/faiss
 
   embedder:
     build: ./embedder/
+    ports:
+      - 5000:5000
     environment:
       - TIKA_URL=http://tika:9998
       - PHP_URL=http://php:80

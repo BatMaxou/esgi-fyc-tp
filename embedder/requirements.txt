@@ -1,4 +1,4 @@
-flask
+fastapi[standard]
 sentence-transformers
 tika
 langchain_text_splitters

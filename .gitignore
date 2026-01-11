@@ -9,6 +9,14 @@
 /compose.override.prod.yaml
 ###< docker ###
 
+###> embedder ###
+/embedder/__pycache__/
+###< embedder ###
+
+###> faiss ###
+/faiss/__pycache__/
+###< faiss ###
+
 ###> Extra ###
 /.DS_Store/
 /.vscode/
