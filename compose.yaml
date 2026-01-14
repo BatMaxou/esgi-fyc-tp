@@ -1,11 +1,6 @@
 services:
-  php:
-    build: ./php/
-    volumes:
-      - ./php:/srv
-
   chroma:
-    image: chromadb/chroma
+    image: # -- Chroma docker image --
     ports:
       - 8010:8000
     volumes:
@@ -15,7 +10,7 @@ services:
       - ANONYMIZED_TELEMETRY=FALSE
 
   qdrant:
-    image: qdrant/qdrant
+    image: # -- Qdrant docker image --
     ports:
       - 8020:6333
     volumes:
@@ -35,7 +30,7 @@ services:
       - 5000:5000
     environment:
       - TIKA_URL=http://tika:9998
-      - PHP_URL=http://php:80
+      - PHP_URL= # -- URL to pdf folder --
     volumes:
       - ./embedder:/app
     depends_on:

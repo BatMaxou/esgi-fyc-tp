@@ -12,7 +12,7 @@ from typing import List, Optional, Dict, Any
 # ========================
 INDEX_PATH = "/data/faiss/index.idx"
 DOCS_PATH = "/data/faiss/documents.json"
-DIMENSION = 384
+DIMENSION = # -- Number of dimensions --
 
 # ========================
 # FAISS setup

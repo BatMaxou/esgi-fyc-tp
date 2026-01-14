@@ -1,12 +1,12 @@
 import os
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from sentence_transformers import SentenceTransformer
 from tika import parser
 from langchain_text_splitters import CharacterTextSplitter
+# -- Import model embedding --
 
 app = FastAPI(title="Embedder API")
-model = SentenceTransformer("all-MiniLM-L6-v2")
+model = # -- Load embedding model --
 
 class TextRequest(BaseModel):
     text: str
