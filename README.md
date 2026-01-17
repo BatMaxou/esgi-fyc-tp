@@ -24,7 +24,7 @@ curl http://localhost:8010/api/v2/heartbeat
 
 ### Swagger
 
-[http://localhost:8020/swagger]
+[http://localhost:8020/dashboard]
 
 ### API Docs
 
@@ -47,3 +47,7 @@ curl http://localhost:8020/healthz
 ```bash
 curl http://localhost:8030/status
 ```
+
+### Swagger
+
+[http://localhost:8030/docs]
